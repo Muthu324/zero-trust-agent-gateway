@@ -1,7 +1,9 @@
 import requests
 from gateway.auth import generate_ephemeral_agent_token
 
-BASE_URL = "http://127.0.0"
+# Change this line
+BASE_URL = "http://localhost:8000/gateway/execute-tool"
+
 
 def run_portfolio_demo():
     print("=== STARTING ZERO-TRUST GATEWAY PROTOCOL EVALUATION ===\n")
