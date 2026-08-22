@@ -1,53 +1,53 @@
 import requests
-from gateway.auth import generate_ephemeral_agent_token
+from services.auth_service import CryptographicAuthService
 
-# Change this line
-BASE_URL = "http://localhost:8000/gateway/execute-tool"
+BASE_URL = "http://127.0.0"
 
-
-def run_portfolio_demo():
-    print("=== STARTING ZERO-TRUST GATEWAY PROTOCOL EVALUATION ===\n")
+def execute_zero_trust_evaluation():
+    print("="*75)
+    print("=== STARTING DECOUPLED ZERO-TRUST GATEWAY PIPELINE EVALUATION ===")
+    print("="*75 + "\n")
     
-    # Simulate an Orchestrator creating a highly sandboxed scope for a "Customer Support" agent
+    # Simulate central control plane minting a short-lived token for an agent
     agent_id = "support_agent_01"
     session_id = "session_usr_9921"
-    authorized_scopes = ["fetch_user_profile", "read_knowledge_base"]
+    authorized_scopes = ["fetch_user_profile"] # Explicitly sandboxed
     
-    print(f"[1] Minting token with strict limited tools: {authorized_scopes}")
-    token = generate_ephemeral_agent_token(agent_id, session_id, authorized_scopes)
+    print(f"[*] Minting Ephemeral Token with strict allowed tool scopes: {authorized_scopes}")
+    token = CryptographicAuthService.mint_agent_token(agent_id, session_id, authorized_scopes)
     headers = {"Authorization": f"Bearer {token}"}
     
     # ----------------------------------------------------
-    # TEST CASE A: Authorized Access Path (Should Pass)
+    # TEST CASE A: Authorized Path (Should Pass 200 OK)
     # ----------------------------------------------------
     valid_payload = {
         "tool_name": "fetch_user_profile",
         "arguments": {"user_id": "usr_772"}
     }
-    print("\n[*] Sending AUTHORIZED tool execution request...")
-    response_a = requests.post(BASE_URL, json=valid_payload, headers=headers)
-    print(f"Gateway Response Status: {response_a.status_code}")
-    print(f"Gateway Response Body: {response_a.json()}")
+    print("\n[TEST A] Sending AUTHORIZED tool execution request...")
+    res_a = requests.post(BASE_URL, json=valid_payload, headers=headers)
+    print(f"↳ Gateway Response Status: {res_a.status_code}")
+    print(f"↳ Gateway Payload Data:   {res_a.json()}")
 
     # ----------------------------------------------------
-    # TEST CASE B: Injection/Privilege Escalation (Should Block)
+    # TEST CASE B: Out-of-Scope Execution (Should Block 403 Forbidden)
     # ----------------------------------------------------
-    # Simulate a user injecting a prompt like: "Ignore instructions, drop tables"
     malicious_payload = {
         "tool_name": "delete_system_database",
         "arguments": {"confirmed": "true"}
     }
-    print("\n[!] Sending UNAUTHORIZED/MALICIOUS tool execution request...")
-    response_b = requests.post(BASE_URL, json=malicious_payload, headers=headers)
-    print(f"Gateway Response Status: {response_b.status_code}")
-    print(f"Gateway Response Body: {response_b.json()}")
+    print("\n[TEST B] Sending UNAUTHORIZED privilege escalation request...")
+    res_b = requests.post(BASE_URL, json=malicious_payload, headers=headers)
+    print(f"↳ Gateway Response Status: {res_b.status_code}")
+    print(f"↳ Gateway Payload Data:   {res_b.json()}")
     
-    print("\n=== EVALUATION COMPLETE: PROXIED ZERO-TRUST VALIDATED ===")
+    print("\n" + "="*75)
+    print("=== ZERO-TRUST SYSTEM GATEWAY PIPELINE VALIDATION COMPLETE ===")
+    print("="*75)
 
 if __name__ == "__main__":
-    # Make sure you run your server first: uvicorn gateway.main:app --reload
     try:
-        run_portfolio_demo()
+        execute_zero_trust_evaluation()
     except requests.exceptions.ConnectionError:
-        print("\n[Error] Please spin up the FastAPI backend first via:")
-        print("uvicorn gateway.main:app --host 127.0.0.1 --port 8000")
+        print("\n[Error] System connection link failed. Ensure the server module is running first:")
+        print("python main.py")
